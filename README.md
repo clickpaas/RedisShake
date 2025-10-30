@@ -1,8 +1,9 @@
 # 
 # RedisShakeCMD 快速使用
-- 从aof中筛选出指定前缀的命令
+- 从aof中筛选出指定前缀的命令,并导入到redis
 ```
 ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof filter -p TEST: file_writer -f /tmp/cmd.txt
+redis-cli -p 6379 < /tmp/cmd.txt
 ```
 - 把rdb文件导入到运行的redis中
 ```
