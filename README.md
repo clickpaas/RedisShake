@@ -17,12 +17,14 @@ Flags:
 $ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof filter -p TEST: file_writer -f /tmp/cmd.txt
 $ redis-cli -p 6379 < /tmp/cmd.txt
 ```
-- 把rdb文件导入到运行的redis中
+- 从一个redis离线导出aof再导入到另一个redis
+```
+$ ./redis-shake-cmd scan_reader -c -d 0 -n 1024 -a 172.33.66.164:8300 -u default -p 123456 file_writer -t aof -f /tmp/a.aof
+$ redis-cli -p 6379 -a 123456 --pipe < /tmp/a.aof
+```
+- 把rdb/aof文件导入到运行的redis中
 ```
 $ ./redis-shake-cmd rdb_reader -f /tmp/dump.rdb redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
-```
-- 把aof文件导入到运行的redis中
-```
 $ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
 ```
 - 扫描一个redis存储到另一个redis
