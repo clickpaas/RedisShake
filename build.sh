@@ -15,20 +15,21 @@ if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
 else
     COMMIT=${COMMIT:-"unknown"}
 fi
-LDFLAGS=${LDFLAGS:-"-X main.Version=${VERSION} -X main.GitCommit=${COMMIT}"}
-
+#LDFLAGS=${LDFLAGS:-"-X main.Version=${VERSION} -X main.GitCommit=${COMMIT}"}
+LDFLAGS=""
 dist() {
     echo "try build GOOS=$1 GOARCH=$2"
     export GOOS=$1
     export GOARCH=$2
     export CGO_ENABLED=0
     go build -v -trimpath -ldflags "${LDFLAGS}" -o "$BIN_DIR/redis-shake" "./cmd/redis-shake"
+    go build -v -trimpath -ldflags "${LDFLAGS}" -o "$BIN_DIR/redis-shake-cmd" "./cmd/redis-shake-cmd"
     unset GOOS
     unset GOARCH
     echo "build success GOOS=$1 GOARCH=$2"
 
     cd "$BIN_DIR"
-    tar -czvf ./redis-shake-"$1"-"$2".tar.gz ./redis-shake ./shake.toml
+    tar -czvf ./redis-shake-"$1"-"$2".tar.gz ./redis-shake ./shake.toml ./redis-shake-cmd
     cd ..
 }
 
@@ -44,4 +45,5 @@ fi
 # build the current platform
 echo "try build for current platform"
 go build -v -trimpath -ldflags "${LDFLAGS}" -o "$BIN_DIR/redis-shake" "./cmd/redis-shake"
+go build -v -trimpath -ldflags "${LDFLAGS}" -o "$BIN_DIR/redis-shake-cmd" "./cmd/redis-shake-cmd"
 echo "build success"
