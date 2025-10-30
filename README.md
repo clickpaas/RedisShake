@@ -1,23 +1,35 @@
 # 
 # RedisShakeCMD 快速使用
+- 命令帮助
+```
+$ ./redis-shake-cmd aof_reader -h
+------redis-shake-cmd aof_reader (description)------
+Usage:
+  aof_reader [flags]
+
+Flags:
+  -f, --filepath string   [required] (default "/tmp/.aof")
+  -h, --help              help for aof_reader
+  -a, --timestamp int     # subsecond
+```
 - 从aof中筛选出指定前缀的命令,并导入到redis
 ```
-./redis-shake-cmd aof_reader -f /tmp/appendonly.aof filter -p TEST: file_writer -f /tmp/cmd.txt
-redis-cli -p 6379 < /tmp/cmd.txt
+$ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof filter -p TEST: file_writer -f /tmp/cmd.txt
+$ redis-cli -p 6379 < /tmp/cmd.txt
 ```
 - 把rdb文件导入到运行的redis中
 ```
-./redis-shake-cmd rdb_reader -f /tmp/dump.rdb redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
+$ ./redis-shake-cmd rdb_reader -f /tmp/dump.rdb redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
 ```
 - 把aof文件导入到运行的redis中
 ```
-./redis-shake-cmd aof_reader -f /tmp/appendonly.aof redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
+$ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
 ```
 - 扫描一个redis存储到另一个redis
 ```
-./redis-shake-cmd scan_reader -c -a 172.33.66.164:8300 -u default -p 123456  redis_writer -c -a 172.33.66.117:8300
+$ ./redis-shake-cmd scan_reader -c -a 172.33.66.164:8300 -u default -p 123456  redis_writer -c -a 172.33.66.117:8300
 ```
-# 完整命令
+# 完整帮助命令
 ```
 $ ./bin/redis-shake-cmd -h
 redis-shake-cmd [command_reader][flags] [command_writer][flags] [filter][flags] [advanced][flags] [module]
