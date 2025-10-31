@@ -50,9 +50,9 @@ func main() {
 func ConvertArgs2Toml(showHelp bool, dryRun bool) (string, error) {
 	var rootCmd = &cobra.Command{
 		Use: "redis-shake-cmd",
-		Long: `redis-shake-cmd [command_reader][flags] [command_writer][flags] [filter][flags] [advanced][flags] [module]
+		Long: `redis-shake-cmd <command_reader>[flags] <command_writer>[flags] [filter][flags] [advanced][flags] [module]
 command_reader: aof_reader, rdb_reader, scan_reader, sync_reader, sync_reader.sentinel
-command_writer: redis_writer, redis_writer.sentinel`,
+command_writer: redis_writer, redis_writer.sentinel, file_writer`,
 	}
 
 	viperMap := make(map[string]*viper.Viper)
