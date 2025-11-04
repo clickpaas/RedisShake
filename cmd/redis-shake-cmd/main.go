@@ -20,7 +20,7 @@ func main() {
 	if strings.Contains(commandLine, "reader") || strings.Contains(commandLine, "writer") ||
 		strings.Contains(commandLine, "filter") || strings.Contains(commandLine, "advanced") ||
 		strings.Contains(commandLine, "module") {
-		tomlPath, err := commands.ConvertArgs2Toml(false, strings.Contains(commandLine, "--dry-run"))
+		tomlPath, err := commands.ConvertArgs2Toml(false, strings.Contains(commandLine, "dry_run"))
 		if err != nil || tomlPath == "" {
 			os.Exit(0)
 		}

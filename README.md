@@ -12,17 +12,24 @@ Flags:
   -h, --help              help for aof_reader
   -a, --timestamp int     # subsecond
 ```
-- 从aof中筛选出指定前缀的命令,并导入到redis
+- 试运行, 只生成配置不实际操作
 ```
-$ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof filter -p TEST: file_writer -f /tmp/cmd.txt
-$ redis-cli -p 6379 < /tmp/cmd.txt
+$ ./redis-shake-cmd filter -p TEST:,BETA: dry_run
+[filter]
+allow_key_prefix = ["TEST:", "BETA:"]
+... ...
 ```
-- 从一个redis离线导出aof再导入到另一个redis
+- 从aof中筛选出指定前缀的命令, 并导入到redis
+```
+$ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof filter -p TEST:,BETA: file_writer -t aof -f /tmp/a.aof
+$ redis-cli -p 6379 --pipe < /tmp/a.aof
+```
+- 从一个云服务redis导出aof, 再导入到另一个redis
 ```
 $ ./redis-shake-cmd scan_reader -c -d 0 -n 1024 -a 172.33.66.164:8300 -u default -p 123456 file_writer -t aof -f /tmp/a.aof
 $ redis-cli -p 6379 -a 123456 --pipe < /tmp/a.aof
 ```
-- 把rdb/aof文件导入到运行的redis中
+- 把rdb/aof文件导入到redis中
 ```
 $ ./redis-shake-cmd rdb_reader -f /tmp/dump.rdb redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
 $ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof redis_writer -a 172.33.66.164:6379 -u default -p 123456 advanced --ncpu=1
@@ -33,10 +40,9 @@ $ ./redis-shake-cmd scan_reader -c -a 172.33.66.164:8300 -u default -p 123456  r
 ```
 # 完整帮助命令
 ```
-$ ./bin/redis-shake-cmd -h
-redis-shake-cmd [command_reader][flags] [command_writer][flags] [filter][flags] [advanced][flags] [module]
-command_reader: aof_reader, rdb_reader, scan_reader, sync_reader, sync_reader.sentinel
-command_writer: redis_writer, redis_writer.sentinel
+redis-shake-cmd <command_reader>[flags] <command_writer>[flags] [filter][flags] [advanced][flags] [module] [dry_run]
+command_reader: aof_reader, rdb_reader, scan_reader, scan_reader.tls_config, sync_reader, sync_reader.tls_config, sync_reader.sentinel, sync_reader.sentinel.tls_config
+command_writer: redis_writer, redis_writer.tls_config, redis_writer.sentinel, redis_writer.sentinel.tls_config, file_writer
 
 
 ------redis-shake-cmd aof_reader (description)------
@@ -64,17 +70,18 @@ Usage:
   scan_reader [flags]
 
 Flags:
-  -a, --address string    # [required] when cluster is true, set address to one of the cluster node (default "127.0.0.1:6379")
-  -c, --cluster           # set to true if source is a redis cluster
-  -n, --count int         # number of keys to scan per iteration (default 1)
-  -d, --dbs ints          # set you want to scan dbs such as [1,5,7], if you don't want to scan all
-  -h, --help              help for scan_reader
-  -k, --ksn               # set to true to enabled Redis keyspace notifications (KSN) subscription
-  -p, --password string   # keep empty if no authentication is required
-  -r, --prefer_replica    
-  -s, --scan              # set to false if you don't want to scan keys (default true)
-  -t, --tls               
-  -u, --username string   # keep empty if not using ACL
+  -a, --address string              # [required] when cluster is true, set address to one of the cluster node (default "127.0.0.1:6379")
+  -c, --cluster                     # set to true if source is a redis cluster
+  -n, --count int                   # number of keys to scan per iteration (default 1)
+  -d, --dbs ints                    # set you want to scan dbs such as [1,5,7], if you don't want to scan all
+  -h, --help                        help for scan_reader
+  -k, --ksn                         # set to true to enabled Redis keyspace notifications (KSN) subscription
+  -p, --password string             # keep empty if no authentication is required
+  -r, --prefer_replica              
+  -s, --scan                        # set to false if you don't want to scan keys (default true)
+  -w, --skip_unknown_type strings   # e.g. ["imset", "mbloom", "string", "hash", "list", "set", "zset"]
+  -t, --tls                         
+  -u, --username string             # keep empty if not using ACL
 
 ------redis-shake-cmd sync_reader (description)------
 
@@ -82,7 +89,7 @@ Usage:
   sync_reader [flags]
 
 Flags:
-  -a, --address string    # [required]For clusters, specify the address of any cluster node; use the master or slave address in master-slave mode (default "127.0.0.1:6379")
+  -a, --address string    # For clusters, specify the address of any cluster node; use the master or slave address in master-slave mode (default "127.0.0.1:6379")
   -c, --cluster           # Set to true if the source is a Redis cluster
   -h, --help              help for sync_reader
   -p, --password string   # Keep empty if no authentication is required
@@ -99,7 +106,7 @@ Usage:
   sync_reader.sentinel [flags]
 
 Flags:
-  -a, --address string       [required]eg: 127.0.0.1:6379
+  -a, --address string       # [required]eg: 127.0.0.1:6379
   -h, --help                 help for sync_reader.sentinel
   -m, --master_name string   
   -p, --password string      
@@ -126,7 +133,7 @@ Usage:
   redis_writer.sentinel [flags]
 
 Flags:
-  -a, --address string       [required]eg: 127.0.0.1:6379
+  -a, --address string       # [required]eg: 127.0.0.1:6379
   -h, --help                 help for redis_writer.sentinel
   -m, --master_name string   
   -p, --password string      
@@ -216,6 +223,9 @@ Flags:
   -q, --target_redis_client_max_querybuf_len uint   # This setting corresponds to the 'client-query-buffer-limit' in Redis configuration.
                                                     # The default value is typically 1GB.
                                                     # It's recommended not to modify this value unless absolutely necessary. (default 1073741824)
+  -m, --target_redis_max_qps int                    # Use the token bucket rate limiting method to limit the maximum written QPS
+                                                    # If the performance of the target end is too poor or you want to protect the target redisyou can reduce this parameter
+                                                    # 300,000 is a maximum value. You can consider it as no rate limit (default 300000)
   -x, --target_redis_proto_max_bulk_len int         # This setting corresponds to the 'proto-max-bulk-len' in Redis configuration.
                                                     # It defines the maximum size of a single string element in the Redis protocol.
                                                     # The value must be 1MB or greater. Default is 512MB.
@@ -236,9 +246,18 @@ Usage:
   file_writer [flags]
 
 Flags:
-  -f, --filepath string   [required] (default "/tmp/cmd.txt")
+  -f, --filepath string   # [required] (default "/tmp/cmd.txt")
   -h, --help              help for file_writer
   -t, --type string       # default: cmd, options: cmd/json/aof (default "cmd")
+
+------redis-shake-cmd dry_run (description)------
+
+Usage:
+  dry_run [flags]
+
+Flags:
+  -h, --help   help for dry_run
+
 
 ```
 # 源码改造来自
