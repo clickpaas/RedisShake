@@ -38,6 +38,9 @@ $ ./redis-shake-cmd aof_reader -f /tmp/appendonly.aof redis_writer -a 172.33.66.
 ```
 $ ./redis-shake-cmd scan_reader -c -a 172.33.66.164:8300 -u default -p 123456  redis_writer -c -a 172.33.66.117:8300
 ```
+# 大数据量实战截图
+<img width="860" height="571" alt="6141763436134_ pic_hd" src="https://github.com/user-attachments/assets/d8fde7eb-c480-43dc-916a-b472f18eee1a" />
+
 # 完整帮助命令
 ```
 redis-shake-cmd <command_reader>[flags] <command_writer>[flags] [filter][flags] [advanced][flags] [module] [dry_run]
